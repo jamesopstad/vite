@@ -1,0 +1,31 @@
+docs/guide/api-plugin.md
+  s_aeabd3ab08d9c1::t_c3df7d8cc02bca 316-348,373-398
+packages/vite/src/node/index.ts
+  s_aeabd3ab08d9c1::t_1bf12a94e7610a 145-146,170
+packages/vite/src/node/plugin.ts
+  s_aeabd3ab08d9c1::t_f838103709cef7 22,31,306-324
+packages/vite/src/node/preview.ts
+  s_aeabd3ab08d9c1::t_f34904e0b7e730 33,35,124-128,176-189,226
+packages/vite/src/node/server/index.ts
+  s_aeabd3ab08d9c1::t_60bafad8dbf74e 48-49,269-286,484-489,635,638-650,868,892,1421-1423
+packages/vite/src/node/shortcuts.ts
+  s_aeabd3ab08d9c1::t_21e282f4c72e15 111,113,120-132
+packages/vite/src/node/utils.ts
+  s_aeabd3ab08d9c1::t_a1c9297181a1d0 1886-1901,1903-1909,1911,1914,1917-1918,1920-1923,1925
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "dc714322005195bd5f0dd720af89a1ea8f8d5c10",
+  "prompts": {},
+  "sessions": {
+    "s_aeabd3ab08d9c1": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_07c15c6e6ffee0AidEAm4rSe7g",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "James Opstad <13586373+jamesopstad@users.noreply.github.com>"
+    }
+  }
+}
