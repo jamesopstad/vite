@@ -1,0 +1,21 @@
+packages/vite/LICENSE.md
+  s_436b43f3bfbfa4::t_655af68214f619 2048-2071
+pnpm-lock.yaml
+  s_436b43f3bfbfa4::t_c81692ee029f03 413-415
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "21b5879d21faebe79d08bed9f9d98c8f4a83c6b8",
+  "prompts": {},
+  "sessions": {
+    "s_436b43f3bfbfa4": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0519db544ffe7EezvVIdT3uozm",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "James Opstad <13586373+jamesopstad@users.noreply.github.com>"
+    }
+  }
+}
