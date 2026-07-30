@@ -1927,18 +1927,23 @@ const exitCallbacks = new Set<ExitCallback>()
 // `signal-exit`'s `onExit` returns a function that removes the listener.
 let removeExitListener: (() => void) | undefined
 
-// The handler passed to `signal-exit`. It must be synchronous and return
-// `true` to "capture" the signal, which prevents `signal-exit` from
-// synthetically re-killing the process before our async cleanup finishes.
-// We then run the registered callbacks and own the final exit.
-const parentExitCallback = (
-  code: number | null | undefined,
+// Guard so the exit sequence runs once, even though it can be triggered from
+// multiple sources (a captured signal, stdin ending, or `process.exit()` being
+// intercepted by `signal-exit`'s patched `reallyExit`).
+let exiting = false
+
+// Run the registered callbacks, then own the final exit. When triggered by a
+// signal we re-raise it (via `signal-exit` having unloaded first) to preserve
+// the conventional `128 + signal number` exit code; otherwise we exit with the
+// given code.
+const runExitCallbacks = (
   signal: NodeJS.Signals | null,
-): true => {
+  code: number | null | undefined,
+): void => {
+  if (exiting) return
+  exiting = true
   Promise.allSettled([...exitCallbacks].map((cb) => cb(signal, code))).finally(
     () => {
-      // Preserve the conventional `128 + signal number` exit code semantics for
-      // signal-triggered exits, matching the previous SIGTERM handler behavior.
       if (signal) {
         process.kill(process.pid, signal)
       } else {
@@ -1946,13 +1951,37 @@ const parentExitCallback = (
       }
     },
   )
+}
+
+// The handler passed to `signal-exit`. It must be synchronous and return
+// `true` to "capture" the signal, which prevents `signal-exit` from
+// synthetically re-killing the process before our async cleanup finishes.
+const parentExitCallback = (
+  code: number | null | undefined,
+  signal: NodeJS.Signals | null,
+): true => {
+  runExitCallbacks(signal, code)
   // Tell `signal-exit` we are handling this exit; it will not re-kill us.
   return true
+}
+
+// Gracefully shut down when stdin ends (e.g. a parent process closed the pipe).
+// `signal-exit` does not cover this, so it is handled separately. See #1857.
+const onStdinEnd = () => {
+  runExitCallbacks(null, 0)
 }
 
 export const setupExitListener = (callback: ExitCallback): void => {
   if (exitCallbacks.size === 0) {
     removeExitListener = onExit(parentExitCallback)
+    // Disabled in CI, where stdin is often already closed and would otherwise
+    // make the process exit immediately. See #3659.
+    if (process.env.CI !== 'true') {
+      process.stdin.on('end', onStdinEnd)
+      // `resume()` is required for the `end` event to fire when nothing else is
+      // consuming stdin.
+      process.stdin.resume()
+    }
   }
   exitCallbacks.add(callback)
 }
@@ -1962,6 +1991,9 @@ export const teardownExitListener = (callback: ExitCallback): void => {
   if (exitCallbacks.size === 0) {
     removeExitListener?.()
     removeExitListener = undefined
+    if (process.env.CI !== 'true') {
+      process.stdin.off('end', onStdinEnd)
+    }
   }
 }
 

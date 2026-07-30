@@ -212,9 +212,9 @@ export async function preview(
     },
   }
 
-  // Dispose the server on exit (SIGINT/Ctrl+C, SIGTERM, etc.). The shared exit
-  // handler in `setupExitListener` awaits this and owns the final process exit,
-  // so this callback only performs cleanup.
+  // Dispose the server on exit (SIGINT/Ctrl+C, SIGTERM, stdin end, etc.). The
+  // shared exit handler in `setupExitListener` awaits this and owns the final
+  // process exit, so this callback only performs cleanup.
   const closeServerAndExit = async () => {
     await server.close()
   }

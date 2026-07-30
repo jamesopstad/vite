@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import crypto from 'node:crypto'
 import os, { type NetworkInterfaceInfoIPv4 } from 'node:os'
-import { describe, expect, test, vi, onTestFinished } from 'vitest'
+import { afterEach, describe, expect, test, vi, onTestFinished } from 'vitest'
 import { fileURLToPath } from 'mlly'
 import {
   asyncFlatten,
@@ -1215,5 +1215,95 @@ describe('resolveServerUrls', () => {
 
     expect(result.network).toStrictEqual(['http://10.0.0.5:3000/'])
     expect(result.networkInterfaceNames).toStrictEqual([undefined])
+  })
+})
+
+describe('exit listener', () => {
+  // `setupExitListener` keeps module-level state (the registered callbacks and a
+  // one-shot `exiting` guard), so load a fresh module copy per test.
+  const loadUtils = async () => {
+    vi.resetModules()
+    return await import('../utils')
+  }
+
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.restoreAllMocks()
+  })
+
+  test('runs registered callbacks and exits when stdin ends', async () => {
+    vi.stubEnv('CI', undefined)
+    const { setupExitListener } = await loadUtils()
+
+    const stdinListeners: Array<() => void> = []
+    vi.spyOn(process.stdin, 'on').mockImplementation(
+      (event: string | symbol, listener: any) => {
+        if (event === 'end') stdinListeners.push(listener)
+        return process.stdin
+      },
+    )
+    const resumeSpy = vi
+      .spyOn(process.stdin, 'resume')
+      .mockReturnValue(process.stdin)
+    const exitSpy = vi
+      .spyOn(process, 'exit')
+      .mockImplementation((() => undefined) as any)
+
+    const callback = vi.fn().mockResolvedValue(undefined)
+    setupExitListener(callback)
+
+    expect(resumeSpy).toHaveBeenCalled()
+    expect(stdinListeners).toHaveLength(1)
+
+    // Simulate stdin ending.
+    stdinListeners[0]()
+    // Let the async callbacks settle.
+    await new Promise((r) => setTimeout(r, 0))
+
+    expect(callback).toHaveBeenCalledTimes(1)
+    expect(callback).toHaveBeenCalledWith(null, 0)
+    expect(exitSpy).toHaveBeenCalledWith(0)
+  })
+
+  test('does not listen to stdin in CI', async () => {
+    vi.stubEnv('CI', 'true')
+    const { setupExitListener } = await loadUtils()
+
+    const endListeners: unknown[] = []
+    vi.spyOn(process.stdin, 'on').mockImplementation(
+      (event: string | symbol, listener: any) => {
+        if (event === 'end') endListeners.push(listener)
+        return process.stdin
+      },
+    )
+    const resumeSpy = vi
+      .spyOn(process.stdin, 'resume')
+      .mockReturnValue(process.stdin)
+
+    setupExitListener(vi.fn().mockResolvedValue(undefined))
+
+    expect(endListeners).toHaveLength(0)
+    expect(resumeSpy).not.toHaveBeenCalled()
+  })
+
+  test('removes the stdin listener when the last callback is torn down', async () => {
+    vi.stubEnv('CI', undefined)
+    const { setupExitListener, teardownExitListener } = await loadUtils()
+
+    const removedEndListeners: unknown[] = []
+    vi.spyOn(process.stdin, 'off').mockImplementation(
+      (event: string | symbol, listener: any) => {
+        if (event === 'end') removedEndListeners.push(listener)
+        return process.stdin
+      },
+    )
+    vi.spyOn(process.stdin, 'on').mockReturnValue(process.stdin)
+    vi.spyOn(process.stdin, 'resume').mockReturnValue(process.stdin)
+
+    const callback = vi.fn().mockResolvedValue(undefined)
+    setupExitListener(callback)
+    teardownExitListener(callback)
+
+    expect(removedEndListeners).toHaveLength(1)
   })
 })
