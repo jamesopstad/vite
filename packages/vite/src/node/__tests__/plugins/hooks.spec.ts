@@ -4,6 +4,7 @@ import { build } from '../../build'
 import type { Plugin } from '../../plugin'
 import { resolveConfig } from '../../config'
 import { createServer } from '../../server'
+import type { ViteDevServer } from '../../server'
 import { preview } from '../../preview'
 import { promiseWithResolvers } from '../../../shared/utils'
 import { type Logger, createLogger } from '../../logger'
@@ -444,5 +445,141 @@ describe('watcher add/unlink error handling', () => {
     await promise
     expect(logError).toHaveBeenCalled()
     expect(logError).toHaveBeenCalledWith(error)
+  })
+})
+
+describe('closeServer hook', () => {
+  test('is called with reason "close" on server.close()', async () => {
+    const closeServer = vi.fn()
+    const server = await createServerWithPlugin({
+      name: 'test',
+      closeServer,
+    })
+
+    await server.close()
+
+    expect(closeServer).toHaveBeenCalledTimes(1)
+    expect(closeServer.mock.calls[0][1]).toEqual({ reason: 'close' })
+    // The hook receives the server instance.
+    expect(closeServer.mock.calls[0][0]).toBe(server)
+  })
+
+  test('receives a minimal plugin context as `this`', async () => {
+    expect.assertions(2)
+
+    const server = await createServerWithPlugin({
+      name: 'test',
+      closeServer() {
+        expect(this).toMatchObject({
+          debug: expect.any(Function),
+          info: expect.any(Function),
+          warn: expect.any(Function),
+          error: expect.any(Function),
+          meta: expect.any(Object),
+        })
+        // Global hooks don't have an environment.
+        expect(this).not.toHaveProperty('environment')
+      },
+    })
+
+    await server.close()
+  })
+
+  test('is awaited before server.close() resolves', async () => {
+    let hookDone = false
+    const server = await createServerWithPlugin({
+      name: 'test',
+      async closeServer() {
+        await new Promise((r) => setTimeout(r, 10))
+        hookDone = true
+      },
+    })
+
+    await server.close()
+
+    // `server.close()` does not resolve until the async hook has completed.
+    expect(hookDone).toBe(true)
+  })
+
+  test('is called only once even if close() is called multiple times', async () => {
+    const closeServer = vi.fn()
+    const server = await createServerWithPlugin({
+      name: 'test',
+      closeServer,
+    })
+
+    await Promise.all([server.close(), server.close()])
+    await server.close()
+
+    expect(closeServer).toHaveBeenCalledTimes(1)
+  })
+
+  test('is called with reason "restart" on server.restart()', async () => {
+    const closeServer = vi.fn()
+    const server = await createServerWithPlugin({
+      name: 'test',
+      closeServer,
+    })
+
+    await server.restart()
+
+    expect(closeServer).toHaveBeenCalledTimes(1)
+    expect(closeServer.mock.calls[0][1]).toEqual({ reason: 'restart' })
+
+    await server.close()
+  })
+
+  test('receives the closing instance on restart, not the replacement', async () => {
+    let closingServer: ViteDevServer | undefined
+    const server = await createServerWithPlugin({
+      name: 'test',
+      closeServer(s, { reason }) {
+        if (reason === 'restart') {
+          closingServer = s
+        }
+      },
+    })
+
+    const serverBeforeRestart = server
+    await server.restart()
+
+    // The hook received the instance that was closing, which is the pre-restart
+    // instance, not the post-restart replacement that `server` now refers to
+    // internally via `Object.assign`.
+    expect(closingServer).toBe(serverBeforeRestart)
+
+    await server.close()
+  })
+})
+
+describe('closePreviewServer hook', () => {
+  test('is called on preview server.close()', async () => {
+    const closePreviewServer = vi.fn()
+    const server = await createPreviewServerWithPlugin({
+      name: 'test',
+      closePreviewServer,
+    })
+
+    await server.close()
+
+    expect(closePreviewServer).toHaveBeenCalledTimes(1)
+    // The hook receives the preview server instance.
+    expect(closePreviewServer.mock.calls[0][0]).toBe(server)
+  })
+
+  test('is awaited before server.close() resolves', async () => {
+    let hookDone = false
+    const server = await createPreviewServerWithPlugin({
+      name: 'test',
+      async closePreviewServer() {
+        await new Promise((r) => setTimeout(r, 10))
+        hookDone = true
+      },
+    })
+
+    await server.close()
+
+    // `server.close()` does not resolve until the async hook has completed.
+    expect(hookDone).toBe(true)
   })
 })

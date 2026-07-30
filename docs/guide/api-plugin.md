@@ -337,6 +337,64 @@ Vite plugins can also provide hooks that serve Vite-specific purposes. These hoo
   })
   ```
 
+### `closeServer`
+
+- **Type:** `(server: ViteDevServer, context: { reason: 'restart' | 'close' }) => void | Promise<void>`
+- **Kind:** `async`, `sequential`
+- **See also:** [ViteDevServer](./api-javascript#vitedevserver)
+- **Scope:** [Global](/guide/api-environment-plugins#per-environment-hooks-and-global-hooks)
+
+  Called when the dev server is restarted or closed, before the server is torn down. Typically used to dispose resources created in [`configureServer`](/guide/api-plugin.html#configureserver).
+
+  The `context.reason` distinguishes the two cases:
+  - `'restart'` — the server is restarting (e.g. a config file change or a call to `server.restart()`).
+  - `'close'` — the server is shutting down (e.g. the `q` shortcut, `SIGTERM`, a forced exit such as `Ctrl+C`, or a call to `server.close()`).
+
+  ```js
+  const myPlugin = () => {
+    let resource
+    return {
+      name: 'close-server',
+      configureServer(server) {
+        resource = createResource()
+      },
+      async closeServer(server, { reason }) {
+        if (reason === 'close') {
+          await resource.dispose()
+        }
+      },
+    }
+  }
+  ```
+
+  On a forced exit the cleanup is best-effort: Vite uses [`signal-exit`](https://github.com/tapjs/signal-exit) to run the hook on `SIGINT`/`SIGTERM`, but a hard kill (`SIGKILL`) or a second interrupt may bypass it.
+
+### `closePreviewServer`
+
+- **Type:** `(server: PreviewServer) => void | Promise<void>`
+- **Kind:** `async`, `sequential`
+- **See also:** [PreviewServer](./api-javascript#previewserver)
+- **Scope:** [Global](/guide/api-environment-plugins#per-environment-hooks-and-global-hooks)
+
+  Same as [`closeServer`](/guide/api-plugin.html#closeserver) but for the preview server. The preview server never restarts, so there is no `reason`.
+
+  ```js
+  const myPlugin = () => {
+    let resource
+    return {
+      name: 'close-preview-server',
+      configurePreviewServer(server) {
+        resource = createResource()
+      },
+      async closePreviewServer(server) {
+        await resource.dispose()
+      },
+    }
+  }
+  ```
+
+  As with `closeServer`, cleanup on a forced exit is best-effort.
+
 ### `transformIndexHtml`
 
 - **Type:** `IndexHtmlTransformHook | { order?: 'pre' | 'post', handler: IndexHtmlTransformHook }`

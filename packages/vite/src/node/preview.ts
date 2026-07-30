@@ -30,9 +30,9 @@ import {
   normalizePath,
   resolveHostname,
   resolveServerUrls,
-  setupSIGTERMListener,
+  setupExitListener,
   shouldServeFile,
-  teardownSIGTERMListener,
+  teardownExitListener,
 } from './utils'
 import { printServerUrls } from './logger'
 import { bindCLIShortcuts } from './shortcuts'
@@ -121,6 +121,11 @@ export type PreviewServerHook = (
   server: PreviewServer,
 ) => (() => void) | void | Promise<(() => void) | void>
 
+export type ClosePreviewServerHook = (
+  this: MinimalPluginContextWithoutEnvironment,
+  server: PreviewServer,
+) => void | Promise<void>
+
 /**
  * Starts the Vite server in preview mode, to simulate a production deployment
  */
@@ -168,7 +173,18 @@ export async function preview(
   // Promise used by `server.close()` to ensure `closeServer()` is only called once
   let closeServerPromise: Promise<void> | undefined
   const closeServer = async () => {
-    teardownSIGTERMListener(closeServerAndExit)
+    teardownExitListener(closeServerAndExit)
+
+    // Run `closePreviewServer` plugin hooks in series before tearing down the
+    // server.
+    const closePreviewServerContext = new BasicMinimalPluginContext(
+      { ...basePluginContextMeta, watchMode: false },
+      config.logger,
+    )
+    for (const hook of config.getSortedPluginHooks('closePreviewServer')) {
+      await hook.call(closePreviewServerContext, server)
+    }
+
     await closeHttpServer()
     server.resolvedUrls = null
   }
@@ -196,16 +212,14 @@ export async function preview(
     },
   }
 
-  const closeServerAndExit = async (_: unknown, exitCode?: number) => {
-    try {
-      await server.close()
-    } finally {
-      process.exitCode ??= exitCode ? 128 + exitCode : undefined
-      process.exit()
-    }
+  // Dispose the server on exit (SIGINT/Ctrl+C, SIGTERM, etc.). The shared exit
+  // handler in `setupExitListener` awaits this and owns the final process exit,
+  // so this callback only performs cleanup.
+  const closeServerAndExit = async () => {
+    await server.close()
   }
 
-  setupSIGTERMListener(closeServerAndExit)
+  setupExitListener(closeServerAndExit)
 
   // cors
   const { cors } = config.preview
