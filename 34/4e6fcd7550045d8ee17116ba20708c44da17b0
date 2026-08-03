@@ -1,0 +1,27 @@
+docs/guide/api-plugin.md
+  s_436b43f3bfbfa4::t_29f2b92ed99a76 340-397
+packages/vite/src/node/__tests__/plugins/hooks.spec.ts
+  s_436b43f3bfbfa4::t_3c255b3ccd220c 7,450-585
+packages/vite/src/node/plugin.ts
+  s_436b43f3bfbfa4::t_82cab5559e024b 22,31,306-320
+packages/vite/src/node/preview.ts
+  s_436b43f3bfbfa4::t_8b395a548146d5 124-128,177-187
+packages/vite/src/node/server/index.ts
+  s_436b43f3bfbfa4::t_de36aa0e1cc2fd 269-283,457-463,631,636-647,819,859-864,1420-1422
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "344e6fcd7550045d8ee17116ba20708c44da17b0",
+  "prompts": {},
+  "sessions": {
+    "s_436b43f3bfbfa4": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0519db544ffe7EezvVIdT3uozm",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "James Opstad <13586373+jamesopstad@users.noreply.github.com>"
+    }
+  }
+}
