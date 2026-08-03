@@ -1,0 +1,39 @@
+docs/guide/api-plugin.md
+  s_436b43f3bfbfa4::t_29f2b92ed99a76 340-341,344-345,347-349,350,351-359,361-368,369,370-372,375-386,388-395
+packages/vite/src/node/__tests__/plugins/hooks.spec.ts
+  s_436b43f3bfbfa4::t_3c255b3ccd220c 449-460,463-501,558-580,582-585,601-602,604-617,620-637
+packages/vite/src/node/plugin.ts
+  s_436b43f3bfbfa4::t_82cab5559e024b 22,31,306,310,313-320
+packages/vite/src/node/preview.ts
+  s_436b43f3bfbfa4::t_8b395a548146d5 124-125,126-127,179,183-186
+  s_436b43f3bfbfa4::t_8e531a8bd30511 33,35,175,217-221,224
+packages/vite/src/node/server/index.ts
+  s_436b43f3bfbfa4::t_de36aa0e1cc2fd 269-271,274-279,280-282,456-462,630,633-634,819,859-864,1418-1420
+  s_436b43f3bfbfa4::t_a89774b82c9567 47,49,272-273,632,881-885,889
+pnpm-lock.yaml
+  s_436b43f3bfbfa4::t_6056686269747e 413-415
+packages/vite/LICENSE.md
+  s_436b43f3bfbfa4::t_bf2a7336ce5016 2048-2071
+packages/vite/src/node/utils.ts
+  s_436b43f3bfbfa4::t_1756f84d5392a0 16,1916-1919,1921-1928,1930-1941,1943-1978,1980-1983,1986,1989-1993,1995
+packages/vite/src/node/__tests__/utils.spec.ts
+  s_436b43f3bfbfa4::t_380ba48f55fd97 5,1248-1337
+packages/vite/package.json
+  s_436b43f3bfbfa4::t_4d85b669811a3a 130
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "f3c5dc50782eb52a45ffa5d1f268c7ac3be29900",
+  "prompts": {},
+  "sessions": {
+    "s_436b43f3bfbfa4": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0519db544ffe7EezvVIdT3uozm",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "James Opstad <13586373+jamesopstad@users.noreply.github.com>"
+    }
+  }
+}
