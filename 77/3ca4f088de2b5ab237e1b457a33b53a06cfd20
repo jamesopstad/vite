@@ -1,0 +1,25 @@
+packages/vite/LICENSE.md
+  s_436b43f3bfbfa4::t_bf2a7336ce5016 2048-2071
+packages/vite/src/node/__tests__/utils.spec.ts
+  s_436b43f3bfbfa4::t_380ba48f55fd97 5,1220-1309
+packages/vite/src/node/utils.ts
+  s_436b43f3bfbfa4::t_1756f84d5392a0 16,1916-1919,1921-1928,1930-1941,1943-1978,1980-1983,1986,1989-1993,1995
+pnpm-lock.yaml
+  s_436b43f3bfbfa4::t_6056686269747e 413-415
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "773ca4f088de2b5ab237e1b457a33b53a06cfd20",
+  "prompts": {},
+  "sessions": {
+    "s_436b43f3bfbfa4": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0519db544ffe7EezvVIdT3uozm",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "James Opstad <13586373+jamesopstad@users.noreply.github.com>"
+    }
+  }
+}
