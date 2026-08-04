@@ -1,0 +1,19 @@
+packages/vite/src/node/utils.ts
+  s_436b43f3bfbfa4::t_699799863c41ad 16,1927-1940
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.10",
+  "base_commit_sha": "f25c4a96e14034071737b351af218ca30de18c78",
+  "prompts": {},
+  "sessions": {
+    "s_436b43f3bfbfa4": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_0519db544ffe7EezvVIdT3uozm",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "James Opstad <13586373+jamesopstad@users.noreply.github.com>"
+    }
+  }
+}
